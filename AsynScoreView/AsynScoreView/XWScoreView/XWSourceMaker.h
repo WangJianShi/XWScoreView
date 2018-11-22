@@ -2,7 +2,7 @@
 //  XWSourceMaker.h
 //  XWNewWidgetDemo
 //
-//  Created by serein on 2018/2/2.
+//  Created by 王剑石 on 2018/2/2.
 //  Copyright © 2018年 wangjianshi. All rights reserved.
 //
 

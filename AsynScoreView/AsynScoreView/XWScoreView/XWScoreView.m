@@ -2,7 +2,7 @@
 //  XWScoreView.m
 //  XWNewWidgetDemo
 //
-//  Created by serein on 2017/11/21.
+//  Created by 王剑石 on 2017/11/21.
 //  Copyright © 2017年 wangjianshi. All rights reserved.
 //
 
@@ -35,72 +35,47 @@
 
 -(void)creatScoreAttr{
     
+     __weak typeof(self) weakSelf = self;
     NSMutableAttributedString *text = [NSMutableAttributedString new];
     UIFont *font = [UIFont systemFontOfSize:0];
     for (int i = 0; i < self.maker.maxValue; i++) {
         
         UIImage *image = [UIImage imageNamed:self.maker.defaultImage];
-        NSMutableAttributedString *attachText = [NSMutableAttributedString yy_attachmentStringWithContent:image contentMode:UIViewContentModeLeft attachmentSize:CGSizeMake(image.size.width + self.maker.space, image.size.height) alignToFont:font alignment:YYTextVerticalAlignmentCenter];
+        NSMutableAttributedString *attachText = [NSMutableAttributedString yy_attachmentStringWithContent:image contentMode:UIViewContentModeLeft attachmentSize:CGSizeMake(image.size.width , image.size.height) alignToFont:font alignment:YYTextVerticalAlignmentCenter];
         
         [text appendAttributedString:attachText];
+        [text appendAttributedString:[self creatEmptyAttributeString:self.maker.space]];
+        [text yy_setTextHighlightRange:NSMakeRange(MAX(0, i*2), 1) color:nil backgroundColor:nil tapAction:^(UIView * _Nonnull containerView, NSAttributedString * _Nonnull text, NSRange range, CGRect rect) {
+
+            if (weakSelf.canEdit && weakSelf.delegate && [weakSelf.delegate respondsToSelector:@selector(scoreView:didSelectScoreViewAtIndex:)]) {
+                [weakSelf.delegate scoreView:weakSelf didSelectScoreViewAtIndex:range.location/2 + 1];
+            }
+        }];
     }
     
     self.attributedText = text;
     
 }
 
-#pragma mark -
-#pragma mark   添加点击事件管理
--(void)addTapAction{
+-(NSMutableAttributedString *)creatEmptyAttributeString:(CGFloat)width{
     
-    __weak typeof(&*self) weakSelf = self;
-    YYTextHighlight *highlight = [YYTextHighlight new];
-
-    highlight.tapAction = ^(UIView *containerView, NSAttributedString *text, NSRange range, CGRect rect) {
-        
-        
-        NSLog(@"%ld-%ld",range.location,range.length);
-        
-         weakSelf.score = arc4random() % 5;
-    };
-    [(NSMutableAttributedString *)self.attributedText yy_setTextHighlight:highlight range:self.attributedText.yy_rangeOfAll];
-
-}
-
--(void)removeTapAction{
+    NSMutableAttributedString *spaceText = [NSMutableAttributedString yy_attachmentStringWithContent:[[UIImage alloc]init] contentMode:UIViewContentModeScaleToFill attachmentSize:CGSizeMake(width, 0.001) alignToFont:[UIFont systemFontOfSize:0] alignment:YYTextVerticalAlignmentCenter];
     
-     [(NSMutableAttributedString *)self.attributedText yy_setTextHighlight:nil range:self.attributedText.yy_rangeOfAll];
-}
-
-
-#pragma mark -
-#pragma mark   set/get
-
--(void)setCanEdit:(BOOL)canEdit{
-    
-    _canEdit = canEdit;
-    if (_canEdit) {
-        
-        [self addTapAction];
-    }else{
-        
-        [self removeTapAction];
-    }
+    return spaceText;
     
 }
+
+
 
 -(void)setScore:(NSInteger)score{
     
-    if (_score == score)
-    {
-        return;
-    }
+    if (_score == score){return;}
     _score = score;
     //获取图片资源
     NSArray *attachments =  self.textLayout.attachments;
-    for (int i = 0; i < attachments.count; i++) {
+    for (int i = 0; i < attachments.count; i+=2) {
         YYTextAttachment *attachment = attachments[i];
-        attachment.content = [UIImage imageNamed:i < _score ? self.maker.selectImage : self.maker.defaultImage];
+        attachment.content = [UIImage imageNamed:i <= (_score - 1) * 2 ? self.maker.selectImage : self.maker.defaultImage];
     }
 
 }
